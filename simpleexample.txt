@@ -1,0 +1,49 @@
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+
+	"github.com/graphql-go/graphql"
+)
+
+func main() {
+	fmt.Println("Simple graphql example1")
+	// define the fields first
+	fields := graphql.Fields{
+		"hello": &graphql.Field{
+			Type: graphql.String,
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				return "world", nil
+			},
+		},
+	}
+	// define the rootQuety and then schemaConfig which takes rootQuery as input
+	rootQuery := graphql.ObjectConfig{Name: "RootQuery", Fields: fields}
+	schemaConfig := graphql.SchemaConfig{Query: graphql.NewObject(rootQuery)}
+	schema, err := graphql.NewSchema(schemaConfig)
+	if err != nil {
+		log.Fatalf("Failed to create new schema , err %v", err)
+	}
+
+	// Lets try to query
+	query := `
+	{
+		hello 
+	}
+	`
+    // define params for Query
+	params := graphql.Params{Schema: schema, RequestString: query}
+	r := graphql.Do(params) // run the query
+	if len(r.Errors) > 0 {
+		log.Fatalf("Failed to execute the query: %v/n", r.Errors)
+	}
+    // if no errors then return marshaleld JSON back
+	rJSON, _ := json.Marshal(r)
+	fmt.Printf("%s\n", rJSON)
+}
+/ * Output of above program is : 
+Simple graphql example
+{"data":{"hello":"world"}}
+*/
