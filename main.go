@@ -8,24 +8,31 @@ import (
 	"github.com/graphql-go/graphql"
 )
 
+//Example to query Tutorials list and a tutorial by id using GraphQL
+
+// Tutorial
 type Tutorial struct {
 	Title    string
 	Author   Author
 	ID       int
 	Comments []Comment
 }
+
+// Author
 type Author struct {
 	Name      string
 	Tutorials []int
 }
+
+// Comment
 type Comment struct {
 	Body string
 }
 
-// Manually poplulate the structs
+// Manually poplulate the structs with 2 tutorials ... You can later use API for this
 func populate() []Tutorial {
 
-	// 1st item in list
+	// 1st item in Tutorial list
 	author := &Author{Name: "PSJohn", Tutorials: []int{1}}
 	tutorial1 := Tutorial{
 		ID:     1,
@@ -35,8 +42,8 @@ func populate() []Tutorial {
 			Comment{Body: "First review comment"},
 		},
 	}
-	// 2nd item in list
-	author = &Author{Name: "JKR", Tutorials: []int{1}}
+	// 2nd item in Tutorial list
+	author = &Author{Name: "JK. Rowling", Tutorials: []int{1}}
 	tutorial2 := Tutorial{
 		ID:     2,
 		Title:  "Harry Potter Covers",
@@ -55,25 +62,31 @@ func populate() []Tutorial {
 }
 
 func main() {
-	fmt.Println("Simple graphql example2")
+	fmt.Println("Simple graphql example")
+
+	// get the value of tutorials list
 	tutorials := populate()
-	// define the fields first
+
+	// define the fields first ... this should match as per the Struct
+	// So here we map the Go Struct to the graphQL object...
 	var commentType = graphql.NewObject( // define object
 		graphql.ObjectConfig{
-			Name: "Comment",
-			Fields: graphql.Fields{ // object has name and fields
-				"body": &graphql.Field{ // Field object and its type
+			Name: "Comment", // Object Name
+			Fields: graphql.Fields{ // object has fields and name and type
+				"body": &graphql.Field{
 					Type: graphql.String,
 				},
 			},
 		},
 	)
 
+	// define the fields first ... this should match as per the Struct
+	// So here we map the Go Struct to the graphQL object...
 	var authorType = graphql.NewObject( // define object
 		graphql.ObjectConfig{
-			Name: "Author",
-			Fields: graphql.Fields{ // object has name and fields
-				"name": &graphql.Field{ // Field object and its type
+			Name: "Author", // object Name
+			Fields: graphql.Fields{ // object has fields and name and type
+				"name": &graphql.Field{
 					Type: graphql.String,
 				},
 				"tutorials": &graphql.Field{
@@ -83,14 +96,16 @@ func main() {
 		},
 	)
 
+	// define the fields first ... this should match as per the Struct
+	// So here we map the Go Struct to the graphQL object...
 	var tutorialtype = graphql.NewObject( // define object
 		graphql.ObjectConfig{
-			Name: "Tutorial",
-			Fields: graphql.Fields{ // object has name and fields
-				"id": &graphql.Field{ // Field object and its type
+			Name: "Tutorial", //object Name
+			Fields: graphql.Fields{ // object has fields and name and type
+				"id": &graphql.Field{
 					Type: graphql.String,
 				},
-				"title": &graphql.Field{ // Field object and its type
+				"title": &graphql.Field{
 					Type: graphql.String,
 				},
 				"author": &graphql.Field{
@@ -103,12 +118,13 @@ func main() {
 		},
 	)
 
+	//now we define the fields on basis of which we will QUERY
 	fields := graphql.Fields{
 		"tutorial": &graphql.Field{
-			Type:        tutorialtype,
+			Type:        tutorialtype, // Type of field
 			Description: "get tutorial by ID",
 			Args: graphql.FieldConfigArgument{
-				"id": &graphql.ArgumentConfig{
+				"id": &graphql.ArgumentConfig{ // Argument of field which is used while querying
 					Type: graphql.Int,
 				},
 			},
@@ -126,14 +142,15 @@ func main() {
 		},
 
 		"list": &graphql.Field{
-			Type:        graphql.NewList(tutorialtype),
+			Type:        graphql.NewList(tutorialtype), // Type of field
 			Description: "Returns the list of tutorials",
+			// Argument if needed for field which is used while querying...since its LIST to return everything so we need no arguments here.
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				return tutorials, nil
 			},
 		},
 	}
-	// define the rootQuety and then schemaConfig which takes rootQuery as input
+	// define the rootQuety and then schemaConfig which takes rootQuery as input and then the scehma
 	rootQuery := graphql.ObjectConfig{Name: "RootQuery", Fields: fields}
 	schemaConfig := graphql.SchemaConfig{Query: graphql.NewObject(rootQuery)}
 	schema, err := graphql.NewSchema(schemaConfig)
@@ -141,6 +158,7 @@ func main() {
 		log.Fatalf("Failed to create new schema , err %v", err)
 	}
 
+	//****** TESTING *******
 	// Lets try to query list of tutorials and retunr id, title and comments
 	queryList := `
 	{
